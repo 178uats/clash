@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Creador de Mazos Completo - Clash Royale</title>
+  <style>
+    :root {
+      --cr-blue: #1b5cb7;
+      --cr-dark-blue: #0b2246;
+      --cr-gold: #fcc21b;
+      --cr-bg: #131c2b;
+      --cr-card-bg: #2d3b50;
+      --cr-purple: #a82df3;
+      --cr-green: #2bba42;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      font-family: 'Arial Black', sans-serif;
+    }
+
+    body {
+      background-color: var(--cr-bg);
+      color: white;
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    .app-container {
+      width: 100%;
+      max-width: 480px;
+      background: linear-gradient(180deg, #182840 0%, #0d1420 100%);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      border: 3px solid #293d59;
+    }
+
+    /* HEADER Y STATS */
+    .header {
+      background: var(--cr-dark-blue);
+      padding: 10px;
+      text-align: center;
+      border-bottom: 3px solid #000;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+    }
+
+    .header h1 {
+      font-size: 1.1rem;
+      color: var(--cr-gold);
+      text-shadow: 2px 2px #000;
+      margin-bottom: 6px;
+    }
+
+    .stats-bar {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      background: #081220;
+      padding: 4px 12px;
+      border-radius: 20px;
+      border: 2px solid #2a4163;
+      width: fit-content;
+      margin: 0 auto;
+    }
+
+    .elixir-icon {
+      width: 20px;
+      height: 20px;
+      background: var(--cr-purple);
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      border: 2px solid #fff;
+      box-shadow: 0 0 8px var(--cr-purple);
+    }
+
+    .avg-cost {
+      font-size: 0.9rem;
+      color: #fff;
+      text-shadow: 1px 1px #000;
+    }
+
+    /* BOTONES DE ACCIÓN (COPIAR / PEGAR) */
+    .deck-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+      justify-content: center;
+    }
+
+    .action-btn {
+      background: linear-gradient(180deg, #3895ff 0%, #1155cc 100%);
+      color: white;
+      border: 2px solid #000;
+      border-radius: 6px;
+      padding: 6px 12px;
+      font-size: 0.65rem;
+      cursor: pointer;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+      text-transform: uppercase;
+      transition: transform 0.1s, filter 0.1s;
+    }
+
+    .action-btn.paste {
+      background: linear-gradient(180deg, #3adb54 0%, #1e8731 100%);
+    }
+
+    .action-btn:active {
+      transform: scale(0.95);
+    }
+
+    /* TABLERO DE MAZO (8 RANURAS) */
+    .deck-section {
+      padding: 10px;
+      background: rgba(0,0,0,0.2);
+    }
+
+    .deck-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+    }
+
+    .card-slot {
+      aspect-ratio: 1 / 1.25;
+      background: var(--cr-card-bg);
+      border: 2px dashed #425778;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      cursor: pointer;
+      transition: transform 0.1s;
+    }
+
+    .card-slot:active {
+      transform: scale(0.95);
+    }
+
+    .card-slot.has-card {
+      border: 2px solid #000;
+      background: linear-gradient(145deg, #3a4d69, #1e2a3c);
+      box-shadow: 0 4px 6px rgba(0,0,0,0.4);
+    }
+
+    /* ESTILOS DE CARTA */
+    .card-img {
+      font-size: 1.6rem;
+      margin-bottom: 2px;
+    }
+
+    .card-name {
+      font-size: 0.55rem;
+      text-align: center;
+      line-height: 0.7rem;
+      padding: 0 2px;
+      text-shadow: 1px 1px #000;
+      word-break: break-word;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+
+    .elixir-badge {
+      position: absolute;
+      top: -4px;
+      left: -4px;
+      background: var(--cr-purple);
+      color: white;
+      font-size: 0.75rem;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid #fff;
+      font-weight: bold;
+      box-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+    }
+
+    .tag-badge {
+      position: absolute;
+      bottom: 2px;
+      font-size: 0.45rem;
+      padding: 1px 3px;
+      border-radius: 3px;
+      text-transform: uppercase;
+      font-weight: bold;
+    }
+
+    .tag-evo { background: #e03131; color: white; }
+    .tag-champion { background: #f59f00; color: black; }
+    .tag-hero { background: #2f9e44; color: white; }
+
+    /* CONTROLES BÚSQUEDA Y FILTROS */
+    .collection-section {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: #0a111a;
+      border-top: 3px solid #000;
+      overflow: hidden;
+    }
+
+    .search-box {
+      padding: 6px 10px;
+      background: #101a26;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 6px 10px;
+      border-radius: 12px;
+      border: 1px solid #2a4163;
+      background: #060b12;
+      color: #fff;
+      font-size: 0.75rem;
+      font-family: sans-serif;
+      outline: none;
+    }
+
+    .filter-tabs {
+      display: flex;
+      background: #141f2e;
+      border-bottom: 2px solid #24354d;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 8px 0;
+      background: none;
+      border: none;
+      color: #7b93b8;
+      font-size: 0.6rem;
+      cursor: pointer;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+
+    .tab-btn.active {
+      color: var(--cr-gold);
+      border-bottom: 3px solid var(--cr-gold);
+      background: rgba(252, 194, 27, 0.05);
+    }
+
+    .card-picker {
+      flex: 1;
+      padding: 10px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      overflow-y: auto;
+      align-content: start;
+    }
+
+    .picker-card {
+      aspect-ratio: 1 / 1.25;
+      background: var(--cr-card-bg);
+      border: 2px solid #000;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      cursor: pointer;
+    }
+
+    .picker-card.disabled {
+      opacity: 0.3;
+      filter: grayscale(1);
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+
+<div class="app-container">
+  <!-- HEADER CON COSTO PROMEDIO Y ACCIONES -->
+  <div class="header">
+    <h1>TUS MAZOS DE BATALLA</h1>
+    <div class="stats-bar">
+      <div class="elixir-icon">💧</div>
+      <div class="avg-cost">Costo medio: <strong id="avg-elixir">0.0</strong></div>
+    </div>
+    
+    <div class="deck-actions">
+      <button class="action-btn" onclick="copyDeckCode()">📋 Copiar Mazo</button>
+      <button class="action-btn paste" onclick="pasteDeckCode()">📥 Pegar Mazo</button>
+    </div>
+  </div>
+
+  <!-- MAZO PRINCIPAL (8 RANURAS) -->
+  <div class="deck-section">
+    <div class="deck-grid" id="deck-grid"></div>
+  </div>
+
+  <!-- SECTOR DE COLECCIÓN -->
+  <div class="collection-section">
+    <div class="search-box">
+      <input type="text" id="search-input" class="search-input" placeholder="Buscar carta..." oninput="onSearchChange(event)">
+    </div>
+
+    <div class="filter-tabs">
+      <button class="tab-btn active" onclick="filterCards('all', event)">Todas</button>
+      <button class="tab-btn" onclick="filterCards('normal', event)">Normales</button>
+      <button class="tab-btn" onclick="filterCards('evo', event)">Evos</button>
+      <button class="tab-btn" onclick="filterCards('champion', event)">Campeones</button>
+      <button class="tab-btn" onclick="filterCards('hero', event)">Héroes</button>
+    </div>
+
+    <div class="card-picker" id="card-picker"></div>
+  </div>
+</div>
+
+<script>
+  // LISTA COMPLETA DE CARTAS DEL JUEGO
+  const cardsData = [
+    // --- CAMPEONES ---
+    { id: 1, name: "Reina Arquera", cost: 5, type: "champion", icon: "🏹" },
+    { id: 2, name: "Caballero Dorado", cost: 4, type: "champion", icon: "🛡️" },
+    { id: 3, name: "Rey Esqueleto", cost: 4, type: "champion", icon: "👑" },
+    { id: 4, name: "Gran Minero", cost: 4, type: "champion", icon: "⛏️" },
+    { id: 5, name: "Monje", cost: 5, type: "champion", icon: "🥋" },
+    { id: 6, name: "Principito", cost: 3, type: "champion", icon: "🤴" },
+    { id: 7, name: "Goblinstein", cost: 5, type: "champion", icon: "🧟" },
+    
+    // --- HÉROES / TROPAS DE TORRE ---
+    { id: 12, name: "Héroe Megacaballero", cost: 2, type: "hero", icon: "🥊" },
+    { id: 13, name: "Héroe Mago de Hielo", cost: 3, type: "hero", icon: "❄️" },
+    { id: 14, name: "Héroe Caballero", cost: 3, type: "hero", icon: "⚔️" },
+    { id: 15, name: "Héroe Duendes", cost: 2, type: "hero", icon: "👺" },
+    { id: 16, name: "Héroe Barril de Bárbaro", cost: 2, type: "hero", icon: "🛢️" },
+    { id: 17, name: "Héroe Mago Arquero", cost: 4, type: "hero", icon: "🏹" },
+    { id: 18, name: "Héroe Megaesbirro", cost: 3, type: "hero", icon: "🦇" },
+    { id: 19, name: "Héroe Gólem de Hielo", cost: 2, type: "hero", icon: "🧊" },
+    { id: 40, name: "Héroe Gigante", cost: 5, type: "hero", icon: "🥊" },
+    { id: 41, name: "Héroe Mago", cost: 5, type: "hero", icon: "🧙‍♂️" },
+    { id: 42, name: "Héroe Mini P.E.K.K.A", cost: 4, type: "hero", icon: "🥞" },
+    { id: 43, name: "Héroe Mosquetera", cost: 4, type: "hero", icon: "🔫" },
+    { id: 44, name: "Héroe Lanzarrocas", cost: 5, type: "hero", icon: "🪨" },
+    { id: 45, name: "Héroe Príncipe Oscuro", cost: 4, type: "hero", icon: "🛡️" },
+    { id: 46, name: "Héroe Globo Bombástico", cost: 5, type: "hero", icon: "🎈" },
+    { id: 47, name: "Héroe Lápida", cost: 3, type: "hero", icon: "🪦" },
+    { id: 48, name: "Héroe Valquiria", cost: 4, type: "hero", icon: "🪓" },
+    { id: 49, name: "Héroe Berserker", cost: 2, type: "hero", icon: "🪓" },
+
+    // --- EVOLUCIONES ---
+    { id: 20, name: "Bárbaros Evo", cost: 5, type: "evo", icon: "🪓" },
+    { id: 21, name: "Esqueletos Evo", cost: 1, type: "evo", icon: "💀" },
+    { id: 22, name: "Gigante Noble Evo", cost: 6, type: "evo", icon: "💣" },
+    { id: 23, name: "Lanzafuegos Evo", cost: 3, type: "evo", icon: "🚀" },
+    { id: 24, name: "Caballero Evo", cost: 3, type: "evo", icon: "⚔️" },
+    { id: 25, name: "Espíritu de Hielo Evo", cost: 1, type: "evo", icon: "❄️" },
+    { id: 26, name: "Reclutas Reales Evo", cost: 7, type: "evo", icon: "🛡️" },
+    { id: 27, name: "Arqueras Evo", cost: 3, type: "evo", icon: "🏹" },
+    { id: 28, name: "Murciélagos Evo", cost: 2, type: "evo", icon: "🦇" },
+    { id: 29, name: "Valquiria Evo", cost: 4, type: "evo", icon: "🪓" },
+    { id: 30, name: "Bombardero Evo", cost: 2, type: "evo", icon: "💣" },
+    { id: 31, name: "Wall Breakers Evo", cost: 2, type: "evo", icon: "💥" },
+    { id: 32, name: "Zap Evo", cost: 2, type: "evo", icon: "⚡" },
+    { id: 33, name: "Mortero Evo", cost: 4, type: "evo", icon: "🏰" },
+    { id: 34, name: "Dragón Infernal Evo", cost: 4, type: "evo", icon: "🐉" },
+    { id: 35, name: "P.E.K.K.A Evo", cost: 7, type: "evo", icon: "🤖" },
+    { id: 36, name: "Megacaballero Evo", cost: 7, type: "evo", icon: "🥊" },
+    { id: 37, name: "Jaula del Duende Evo", cost: 4, type: "evo", icon: "🪵" },
+    { id: 38, name: "Duendes de la Lanza Evo", cost: 2, type: "evo", icon: "🗡️" },
+    { id: 39, name: "Mago Evo", cost: 5, type: "evo", icon: "🧙‍♂️" },
+    { id: 50, name: "Evolución de Ejecutor", cost: 5, type: "evo", icon: "🪓" },
+    { id: 51, name: "Evolución de Ariete de Batalla", cost: 4, type: "evo", icon: "🪵" },
+    { id: 52, name: "Evolución del Fantasma Real", cost: 3, type: "evo", icon: "👻" },
+    { id: 53, name: "Evolución del Barril de Esqueletos", cost: 3, type: "evo", icon: "🎈" },
+    { id: 54, name: "Evolución de Bola de Nieve Gigante", cost: 2, type: "evo", icon: "❄️" },
+    { id: 55, name: "Evolución del Leñador", cost: 4, type: "evo", icon: "🪓" },
+    { id: 56, name: "Evolución del Barril de Duendes", cost: 3, type: "evo", icon: "🛢️" },
+    { id: 57, name: "Evolución de Tesla", cost: 4, type: "evo", icon: "⚡" },
+    { id: 58, name: "Evolución de Cañón", cost: 3, type: "evo", icon: "💣" },
+    { id: 59, name: "Evolución de Puercos Reales", cost: 5, type: "evo", icon: "🐖" },
+    { id: 60, name: "Evolución de Taladro de Duendes", cost: 4, type: "evo", icon: "⛏️" },
+    { id: 61, name: "Evolución de Princesa", cost: 3, type: "evo", icon: "🏹" },
+    { id: 62, name: "Evolución de Duende Lanzadardos", cost: 3, type: "evo", icon: "🎯" },
+    { id: 63, name: "Evolución de Cazador", cost: 4, type: "evo", icon: "🤠" },
+    { id: 64, name: "Evolución de Ejército de Esqueletos", cost: 3, type: "evo", icon: "💀" },
+    { id: 65, name: "Evolución de Bebé Dragón", cost: 4, type: "evo", icon: "🐉" },
+    { id: 66, name: "Evolución de Mosquetera", cost: 4, type: "evo", icon: "🔫" },
+    { id: 67, name: "Evolución de Bruja", cost: 5, type: "evo", icon: "🧙‍♀️" },
+    { id: 68, name: "Evolución de Horno", cost: 4, type: "evo", icon: "🔥" },
+    { id: 69, name: "Evolución de Pandilla de Duendes", cost: 3, type: "evo", icon: "👥" },
+    { id: 70, name: "Evolución de Gigante Duende", cost: 6, type: "evo", icon: "👺" },
+    { id: 71, name: "Evolución de Bárbaros de Élite", cost: 6, type: "evo", icon: "⚔️" },
+    { id: 72, name: "Horda de Esbirros", cost: 5, type: "evo", icon: "🦅" },
+
+    // --- TROPAS NORMALES ---
+    { id: 100, name: "Esqueletos", cost: 1, type: "normal", icon: "💀" },
+    { id: 101, name: "Espíritu de Hielo", cost: 1, type: "normal", icon: "❄️" },
+    { id: 102, name: "Espíritu de Fuego", cost: 1, type: "normal", icon: "🔥" },
+    { id: 103, name: "Espíritu Eléctrico", cost: 1, type: "normal", icon: "⚡" },
+    { id: 104, name: "Espíritu Sanador", cost: 1, type: "normal", icon: "✨" },
+    { id: 105, name: "Duendes", cost: 2, type: "normal", icon: "👺" },
+    { id: 106, name: "Duendes con Lanza", cost: 2, type: "normal", icon: "🗡️" },
+    { id: 107, name: "Murciélagos", cost: 2, type: "normal", icon: "🦇" },
+    { id: 108, name: "Bombardero", cost: 2, type: "normal", icon: "💣" },
+    { id: 109, name: "Rompemuros", cost: 2, type: "normal", icon: "💥" },
+    { id: 110, name: "Arqueras", cost: 3, type: "normal", icon: "🏹" },
+    { id: 111, name: "Caballero", cost: 3, type: "normal", icon: "⚔️" },
+    { id: 112, name: "Esbirros", cost: 3, type: "normal", icon: "🦅" },
+    { id: 113, name: "Demoledor Duende", cost: 4, type: "normal", icon: "💣" },
+    { id: 114, name: "Pandilla de Duendes", cost: 3, type: "normal", icon: "👥" },
+    { id: 115, name: "Lanzafuegos", cost: 3, type: "normal", icon: "🚀" },
+    { id: 116, name: "Duende Lanzadardos", cost: 3, type: "normal", icon: "🎯" },
+    { id: 117, name: "Megaesbirro", cost: 3, type: "normal", icon: "🦇" },
+    { id: 118, name: "Arquero Mágico", cost: 4, type: "normal", icon: "🏹" },
+    { id: 119, name: "Mosquetera", cost: 4, type: "normal", icon: "🔫" },
+    { id: 120, name: "Mini P.E.K.K.A", cost: 4, type: "normal", icon: "🥞" },
+    { id: 121, name: "Valquiria", cost: 4, type: "normal", icon: "🪓" },
+    { id: 122, name: "Montapuercos", cost: 4, type: "normal", icon: "🔨" },
+    { id: 123, name: "Bebé Dragón", cost: 4, type: "normal", icon: "🐉" },
+    { id: 124, name: "Dragón Infernal", cost: 4, type: "normal", icon: "🐲" },
+    { id: 125, name: "Dragón Eléctrico", cost: 5, type: "normal", icon: "⚡" },
+    { id: 126, name: "Mago", cost: 5, type: "normal", icon: "🧙‍♂️" },
+    { id: 127, name: "Mago de Hielo", cost: 3, type: "normal", icon: "🧊" },
+    { id: 128, name: "Mago Eléctrico", cost: 4, type: "normal", icon: "⚡" },
+    { id: 129, name: "Bruja", cost: 5, type: "normal", icon: "🧙‍♀️" },
+    { id: 130, name: "Bruja Madre", cost: 4, type: "normal", icon: "🐖" },
+    { id: 131, name: "Bruja Nocturna", cost: 4, type: "normal", icon: "🦇" },
+    { id: 132, name: "Príncipe", cost: 5, type: "normal", icon: "🐴" },
+    { id: 133, name: "Príncipe Oscuro", cost: 4, type: "normal", icon: "🛡️" },
+    { id: 134, name: "P.E.K.K.A", cost: 7, type: "normal", icon: "🤖" },
+    { id: 135, name: "Gigante", cost: 5, type: "normal", icon: "🥊" },
+    { id: 136, name: "Gigante Duende", cost: 6, type: "normal", icon: "👺" },
+    { id: 137, name: "Gigante Eléctrico", cost: 7, type: "normal", icon: "⚡" },
+    { id: 138, name: "Gigante Noble", cost: 6, type: "normal", icon: "💣" },
+    { id: 139, name: "Esqueleto Gigante", cost: 6, type: "normal", icon: "💣" },
+    { id: 140, name: "Trío de Mosqueteras", cost: 9, type: "normal", icon: "🔫" },
+    { id: 141, name: "Golem", cost: 8, type: "normal", icon: "🗿" },
+    { id: 142, name: "Golem de Elixir", cost: 3, type: "normal", icon: "💧" },
+    { id: 143, name: "Golem de Hielo", cost: 2, type: "normal", icon: "🧊" },
+    { id: 144, name: "Sabueso de Lava", cost: 7, type: "normal", icon: "🌋" },
+    { id: 145, name: "Megacaballero", cost: 7, type: "normal", icon: "🥊" },
+    { id: 146, name: "Chispitas", cost: 6, type: "normal", icon: "⚡" },
+    { id: 147, name: "Lanza-rocas", cost: 5, type: "normal", icon: "🪨" },
+    { id: 148, name: "Verdugo", cost: 5, type: "normal", icon: "🪓" },
+    { id: 149, name: "Pescador", cost: 3, type: "normal", icon: "⚓" },
+    { id: 150, name: "Cazador", cost: 4, type: "normal", icon: "🤠" },
+    { id: 151, name: "Fénix", cost: 4, type: "normal", icon: "🦅" },
+    { id: 152, name: "Bandida", cost: 3, type: "normal", icon: "🗡️" },
+    { id: 153, name: "Minero", cost: 3, type: "normal", icon: "⛏️" },
+    { id: 154, name: "Montacarneros", cost: 5, type: "normal", icon: "🐏" },
+    { id: 155, name: "Leñador", cost: 4, type: "normal", icon: "🪓" },
+    { id: 156, name: "Curandera Guerrera", cost: 4, type: "normal", icon: "⚔️" },
+    { id: 157, name: "Horda de Esbirros", cost: 5, type: "normal", icon: "🦅" },
+    { id: 158, name: "Reclutas Reales", cost: 7, type: "normal", icon: "🛡️" },
+    { id: 159, name: "Bárbaros", cost: 5, type: "normal", icon: "🪓" },
+    { id: 160, name: "Bárbaros de Elite", cost: 6, type: "normal", icon: "⚔️" },
+    { id: 161, name: "Puercos Reales", cost: 5, type: "normal", icon: "🐖" },
+    { id: 162, name: "Pillos", cost: 5, type: "normal", icon: "🍬" },
+    { id: 163, name: "Guardias", cost: 3, type: "normal", icon: "🛡️" },
+    { id: 164, name: "Ejecutor", cost: 5, type: "normal", icon: "🪓" },
+    { id: 165, name: "Fantasma Real", cost: 3, type: "normal", icon: "👻" },
+    { id: 166, name: "Zappies", cost: 4, type: "normal", icon: "⚡" },
+    { id: 167, name: "Carro de Cañón", cost: 5, type: "normal", icon: "💣" },
+    { id: 168, name: "Máquina Voladora", cost: 4, type: "normal", icon: "✈️" },
+    { id: 169, name: "Lanzarrocas", cost: 5, type: "normal", icon: "🪨" },
+    { id: 170, name: "Cañón con Ruedas", cost: 5, type: "normal", icon: "💣" },
+    { id: 171, name: "Dragones Esqueleto", cost: 4, type: "normal", icon: "🐉" },
+    { id: 172, name: "Madre Bruja", cost: 4, type: "normal", icon: "🐖" },
+    { id: 173, name: "Gólem de Elixir", cost: 3, type: "normal", icon: "💧" },
+    { id: 174, name: "Máquina Duende", cost: 5, type: "normal", icon: "🤖" },
+    { id: 175, name: "Arbusto Sospechoso", cost: 2, type: "normal", icon: "🌳" },
+    { id: 177, name: "Gigante Rúnica", cost: 6, type: "normal", icon: "🗿" },
+    { id: 178, name: "Berserker", cost: 2, type: "normal", icon: "🪓" },
+    { id: 179, name: "Ronin", cost: 4, type: "normal", icon: "⚔️" },
+    { id: 180, name: "Emperatriz Espiritual", cost: 6, type: "normal", icon: "👑" },
+    { id: 181, name: "Globo bombástico", cost: 5, type: "normal", icon: "🎈" },
+    { id: 182, name: "Princesa", cost: 3, type: "normal", icon: "🏹" },
+    { id: 183, name: "Gigante Esbirro", cost: 4, type: "normal", icon: "🦅" },
+
+    // --- HECHIZOS ---
+    { id: 200, name: "El Tronco", cost: 2, type: "normal", icon: "🪵" },
+    { id: 201, name: "Descarga (Zap)", cost: 2, type: "normal", icon: "⚡" },
+    { id: 202, name: "Bola de Nieve", cost: 2, type: "normal", icon: "❄️" },
+    { id: 203, name: "Flechas", cost: 3, type: "normal", icon: "🏹" },
+    { id: 204, name: "Barril de Duendes", cost: 3, type: "normal", icon: "🛢️" },
+    { id: 205, name: "Barril de Bárbaro", cost: 2, type: "normal", icon: "🛢️" },
+    { id: 206, name: "Barril de Esqueletos", cost: 3, type: "normal", icon: "🎈" },
+    { id: 207, name: "Terremoto", cost: 3, type: "normal", icon: "🌋" },
+    { id: 208, name: "Clon", cost: 3, type: "normal", icon: "👥" },
+    { id: 209, name: "Bola de Fuego", cost: 4, type: "normal", icon: "🔥" },
+    { id: 210, name: "Veneno", cost: 4, type: "normal", icon: "🧪" },
+    { id: 211, name: "Hielo", cost: 4, type: "normal", icon: "🧊" },
+    { id: 212, name: "Furia", cost: 2, type: "normal", icon: "😡" },
+    { id: 213, name: "Rayo", cost: 6, type: "normal", icon: "⚡" },
+    { id: 214, name: "Cohete", cost: 6, type: "normal", icon: "🚀" },
+    { id: 215, name: "Cementerio", cost: 5, type: "normal", icon: "🪦" },
+    { id: 216, name: "Maldición Duende", cost: 2, type: "normal", icon: "🧪" },
+    { id: 217, name: "Espejo", cost: 0, type: "normal", icon: "🪞" },
+    { id: 218, name: "Tornado", cost: 3, type: "normal", icon: "🌪️" },
+    { id: 219, name: "Bola de Nieve Gigante", cost: 2, type: "normal", icon: "❄️" },
+    { id: 220, name: "Entrega Real", cost: 3, type: "normal", icon: "📦" },
+    { id: 221, name: "Vacío", cost: 3, type: "normal", icon: "🕳️" },
+    { id: 222, name: "Enredadera", cost: 3, type: "normal", icon: "🌿" },
+
+    // --- ESTRUCTURAS ---
+    { id: 300, name: "Lápida", cost: 3, type: "normal", icon: "🪦" },
+    { id: 301, name: "Cañón", cost: 3, type: "normal", icon: "💣" },
+    { id: 302, name: "Torre Tesla", cost: 4, type: "normal", icon: "⚡" },
+    { id: 303, name: "Torre Infernal", cost: 5, type: "normal", icon: "🔥" },
+    { id: 304, name: "Torre de Bombas", cost: 4, type: "normal", icon: "💣" },
+    { id: 305, name: "Mortero", cost: 4, type: "normal", icon: "🏰" },
+    { id: 306, name: "X-Ballesta", cost: 6, type: "normal", icon: "🏹" },
+    { id: 307, name: "Choza de Duendes", cost: 5, type: "normal", icon: "🛖" },
+    { id: 308, name: "Choza de Bárbaros", cost: 6, type: "normal", icon: "🏚️" },
+    { id: 309, name: "Horno", cost: 4, type: "normal", icon: "🔥" },
+    { id: 310, name: "Recolector de Elixir", cost: 6, type: "normal", icon: "🧪" },
+    { id: 311, name: "Jaula del Duende", cost: 4, type: "normal", icon: "🪵" },
+    { id: 312, name: "Excavadora de Duendes", cost: 4, type: "normal", icon: "⛏️" }
+  ];
+
+  let currentDeck = Array(8).fill(null);
+  let currentFilter = 'all';
+  let searchQuery = '';
+
+  function init() {
+    renderDeck();
+    renderPicker();
+  }
+
+  function renderDeck() {
+    const grid = document.getElementById('deck-grid');
+    grid.innerHTML = '';
+
+    currentDeck.forEach((card, index) => {
+      const slot = document.createElement('div');
+      slot.className = `card-slot ${card ? 'has-card' : ''}`;
+      
+      if (card) {
+        slot.innerHTML = `
+          <div class="elixir-badge">${card.cost}</div>
+          <div class="card-img">${card.icon}</div>
+          <div class="card-name">${card.name}</div>
+          ${getBadgeHTML(card.type)}
+        `;
+        slot.onclick = () => removeCard(index);
+      } else {
+        slot.innerHTML = `<span style="color: #425778; font-size: 1.5rem;">+</span>`;
+      }
+      grid.appendChild(slot);
+    });
+
+    calculateAvgElixir();
+  }
+
+  function renderPicker() {
+    const picker = document.getElementById('card-picker');
+    picker.innerHTML = '';
+
+    const filteredCards = cardsData.filter(card => {
+      const matchesFilter = (currentFilter === 'all') || (card.type === currentFilter);
+      const matchesSearch = card.name.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchesFilter && matchesSearch;
+    });
+
+    filteredCards.forEach(card => {
+      const isInDeck = currentDeck.some(c => c && c.id === card.id);
+      const cardEl = document.createElement('div');
+      cardEl.className = `picker-card ${isInDeck ? 'disabled' : ''}`;
+      
+      cardEl.innerHTML = `
+        <div class="elixir-badge">${card.cost}</div>
+        <div class="card-img">${card.icon}</div>
+        <div class="card-name">${card.name}</div>
+        ${getBadgeHTML(card.type)}
+      `;
+
+      if (!isInDeck) {
+        cardEl.onclick = () => addCard(card);
+      }
+
+      picker.appendChild(cardEl);
+    });
+  }
+
+  function addCard(card) {
+    const emptyIndex = currentDeck.findIndex(slot => slot === null);
+    if (emptyIndex !== -1) {
+      currentDeck[emptyIndex] = card;
+      renderDeck();
+      renderPicker();
+    }
+  }
+
+  function removeCard(index) {
+    currentDeck[index] = null;
+    renderDeck();
+    renderPicker();
+  }
+
+  function calculateAvgElixir() {
+    const activeCards = currentDeck.filter(c => c !== null);
+    if (activeCards.length === 0) {
+      document.getElementById('avg-elixir').textContent = '0.0';
+      return;
+    }
+    const totalCost = activeCards.reduce((sum, c) => sum + c.cost, 0);
+    const avg = (totalCost / activeCards.length).toFixed(1);
+    document.getElementById('avg-elixir').textContent = avg;
+  }
+
+  function filterCards(type, event) {
+    currentFilter = type;
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    if (event) event.target.classList.add('active');
+    renderPicker();
+  }
+
+  function onSearchChange(event) {
+    searchQuery = event.target.value;
+    renderPicker();
+  }
+
+  function getBadgeHTML(type) {
+    if (type === 'evo') return `<div class="tag-badge tag-evo">EVO</div>`;
+    if (type === 'champion') return `<div class="tag-badge tag-champion">CAMP</div>`;
+    if (type === 'hero') return `<div class="tag-badge tag-hero">HÉROE</div>`;
+    return '';
+  }
+
+  // --- LÓGICA DE CÓDIGO DE MAZO (8-12 CARACTERES ALFANUMÉRICOS) ---
+
+  function copyDeckCode() {
+    const filledCards = currentDeck.filter(c => c !== null);
+    if (filledCards.length < 8) {
+      alert("Debes completar el mazo con 8 cartas antes de copiarlo.");
+      return;
+    }
+
+    // Convertimos los IDs de las cartas a bytes y luego a Base64 (genera ~8 caracteres alfanuméricos)
+    const bytes = new Uint16Array(currentDeck.map(c => c.id));
+    const binary = String.fromCharCode(...new Uint8Array(bytes.buffer));
+    const code = btoa(binary).replace(/=/g, ''); // Limpia caracteres sobrantes
+
+    navigator.clipboard.writeText(code).then(() => {
+      alert(`¡Mazo copiado! Código: ${code}`);
+    }).catch(() => {
+      prompt("Copia tu código de mazo manualmente:", code);
+    });
+  }
+
+  async function pasteDeckCode() {
+    let inputCode = "";
+    
+    try {
+      inputCode = await navigator.clipboard.readText();
+    } catch (e) {
+      // Si el navegador bloquea la lectura automática del portapapeles
+    }
+
+    if (!inputCode) {
+      inputCode = prompt("Pega aquí el código del mazo (ej. A8f3K9zL):");
+    }
+
+    if (!inputCode) return;
+
+    inputCode = inputCode.trim();
+
+    try {
+      // Pad base64 string si hace falta
+      let base64 = inputCode;
+      while (base64.length % 4 !== 0) base64 += '=';
+
+      const binary = atob(base64);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) {
+        bytes[i] = binary.charCodeAt(i);
+      }
+      const ids = Array.from(new Uint16Array(bytes.buffer));
+
+      if (ids.length !== 8) {
+        throw new Error("El código no corresponde a un mazo válido.");
+      }
+
+      // Verificamos que todas las cartas existan
+      const newDeck = ids.map(id => cardsData.find(c => c.id === id));
+      if (newDeck.includes(undefined)) {
+        throw new Error("El código contiene cartas no reconocidas.");
+      }
+
+      currentDeck = newDeck;
+      renderDeck();
+      renderPicker();
+      alert("¡Mazo cargado con éxito!");
+
+    } catch (err) {
+      alert("Código inválido. Asegúrate de haber copiado el código correctamente.");
+    }
+  }
+
+  init();
+</script>
+</body>
+</html>
